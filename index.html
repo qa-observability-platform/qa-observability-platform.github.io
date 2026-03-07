@@ -538,6 +538,8 @@
 </style>
 
 <script>
+const DEFAULT_KEY = '__GROQ_API_KEY__';
+
 const SYSTEM_PROMPT = `You are the QOP Assistant — an expert on the QA Observability Platform (QOP).
 
 QOP is a free, self-hosted test observability platform. You ONLY answer questions related to QOP and its components. If someone asks something unrelated to QOP, politely say you can only help with QOP-related questions.
@@ -586,8 +588,8 @@ function toggleChat() {
   const panel = document.getElementById('chat-panel');
   panel.classList.toggle('open');
   if (panel.classList.contains('open')) {
-    const key = localStorage.getItem('groq_key');
-    if (key) {
+    const hasKey = localStorage.getItem('groq_key') || DEFAULT_KEY.startsWith('gsk_');
+    if (hasKey) {
       showChatScreen();
     } else {
       showKeySetup();
@@ -636,7 +638,7 @@ async function sendMessage() {
   const text = input.value.trim();
   if (!text) return;
 
-  const key = localStorage.getItem('groq_key');
+  const key = localStorage.getItem('groq_key') || (DEFAULT_KEY.startsWith('gsk_') ? DEFAULT_KEY : null);
   if (!key) { showKeySetup(); return; }
 
   input.value = '';
