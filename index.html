@@ -378,5 +378,312 @@
     </div>
   </footer>
 
+
+<!-- CHAT WIDGET -->
+<div id="chat-btn" onclick="toggleChat()" title="Ask about QOP">
+  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+</div>
+
+<div id="chat-panel">
+  <div id="chat-header">
+    <div>
+      <div style="font-weight:600;font-size:0.9rem;">QOP Assistant</div>
+      <div style="font-size:0.75rem;color:#888;margin-top:2px;">Ask anything about QOP</div>
+    </div>
+    <div style="display:flex;gap:0.5rem;align-items:center;">
+      <button onclick="showKeySetup()" title="Set API Key" style="background:none;border:none;color:#888;cursor:pointer;font-size:0.75rem;padding:4px 8px;border-radius:4px;border:1px solid #1e1e2e;">⚙ Key</button>
+      <button onclick="toggleChat()" style="background:none;border:none;color:#888;cursor:pointer;font-size:1.2rem;line-height:1;">×</button>
+    </div>
+  </div>
+
+  <!-- Key setup screen -->
+  <div id="key-setup">
+    <div style="font-size:0.85rem;color:#aaa;margin-bottom:1rem;line-height:1.5;">
+      Enter your free <a href="https://console.groq.com" target="_blank" style="color:#818cf8;">Groq API key</a> to chat with the QOP assistant.<br>
+      Your key is stored only in your browser and never sent anywhere except Groq.
+    </div>
+    <input id="key-input" type="password" placeholder="gsk_..." style="width:100%;padding:0.6rem 0.75rem;background:#0a0a0f;border:1px solid #1e1e2e;border-radius:6px;color:#e2e2f0;font-size:0.85rem;margin-bottom:0.75rem;outline:none;" />
+    <button onclick="saveKey()" style="width:100%;padding:0.6rem;background:#6366f1;color:#fff;border:none;border-radius:6px;font-size:0.875rem;font-weight:600;cursor:pointer;">Save & Start Chatting</button>
+  </div>
+
+  <!-- Chat screen -->
+  <div id="chat-screen" style="display:none;flex-direction:column;flex:1;overflow:hidden;">
+    <div id="chat-messages"></div>
+    <div id="chat-input-area">
+      <input id="chat-input" type="text" placeholder="Ask about QOP..." onkeydown="if(event.key==='Enter')sendMessage()" />
+      <button onclick="sendMessage()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>
+      </button>
+    </div>
+  </div>
+</div>
+
+<style>
+  #chat-btn {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    width: 52px;
+    height: 52px;
+    background: #6366f1;
+    color: #fff;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 20px rgba(99,102,241,0.5);
+    z-index: 999;
+    transition: transform 0.2s;
+  }
+  #chat-btn:hover { transform: scale(1.08); }
+
+  #chat-panel {
+    position: fixed;
+    bottom: 5.5rem;
+    right: 2rem;
+    width: 360px;
+    max-height: 520px;
+    background: #111118;
+    border: 1px solid #1e1e2e;
+    border-radius: 14px;
+    display: none;
+    flex-direction: column;
+    z-index: 998;
+    box-shadow: 0 8px 40px rgba(0,0,0,0.6);
+    overflow: hidden;
+  }
+  #chat-panel.open { display: flex; }
+
+  #chat-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 1.25rem;
+    border-bottom: 1px solid #1e1e2e;
+    flex-shrink: 0;
+  }
+
+  #key-setup {
+    padding: 1.25rem;
+    flex: 1;
+  }
+
+  #chat-messages {
+    flex: 1;
+    overflow-y: auto;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+    min-height: 0;
+    max-height: 360px;
+  }
+
+  .msg {
+    max-width: 85%;
+    padding: 0.6rem 0.9rem;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    line-height: 1.5;
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+  .msg.user {
+    background: #6366f1;
+    color: #fff;
+    align-self: flex-end;
+    border-bottom-right-radius: 3px;
+  }
+  .msg.assistant {
+    background: #13131c;
+    color: #e2e2f0;
+    align-self: flex-start;
+    border: 1px solid #1e1e2e;
+    border-bottom-left-radius: 3px;
+  }
+  .msg.error { background: #2a1a1a; color: #f87171; border: 1px solid #3a1a1a; }
+  .msg.thinking { color: #555577; font-style: italic; background: transparent; border: none; padding: 0.25rem 0; }
+
+  #chat-input-area {
+    display: flex;
+    gap: 0.5rem;
+    padding: 0.75rem 1rem;
+    border-top: 1px solid #1e1e2e;
+    flex-shrink: 0;
+  }
+  #chat-input {
+    flex: 1;
+    background: #0a0a0f;
+    border: 1px solid #1e1e2e;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    color: #e2e2f0;
+    font-size: 0.85rem;
+    outline: none;
+  }
+  #chat-input:focus { border-color: #6366f1; }
+  #chat-input-area button {
+    background: #6366f1;
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  #chat-input-area button:hover { background: #5254cc; }
+</style>
+
+<script>
+const SYSTEM_PROMPT = `You are the QOP Assistant — an expert on the QA Observability Platform (QOP).
+
+QOP is a free, self-hosted test observability platform. You ONLY answer questions related to QOP and its components. If someone asks something unrelated to QOP, politely say you can only help with QOP-related questions.
+
+== ARCHITECTURE ==
+- Node.js API (org.qop.nodeapi): Express + TypeScript backend on port 4000. Handles WebSocket ingestion (ws://host:4000/ws/ingest), live streaming (ws://host:4000/ws/live), REST CRUD, JWT auth, migrations via node-pg-migrate, PostgreSQL via Knex.
+- Python AI API (org.qop.pythonapi): FastAPI on port 8000. Handles AI failure analysis (Claude/GPT/Groq), flaky test detection, scheduled jobs via APScheduler.
+- Web Dashboard (org.qop.web): Next.js 14 App Router on port 3000. TailwindCSS, Recharts, real-time live execution view.
+- PostgreSQL: shared database, port 5433 (Docker), tables: organizations, projects, applications, test_runs, test_case_master, test_case_executions, test_stability_metrics, test_quarantine, flakiness_events, screenshots.
+
+== SELF-HOSTED SETUP ==
+git clone https://github.com/qa-observability-platform/org.qop.deploy.git
+cd org.qop.deploy
+cp .env.docker.example .env.docker
+# Edit .env.docker with your values
+docker compose --env-file .env.docker up -d
+# Open http://localhost:3000
+
+== REPORTER SDKs ==
+- Playwright: npm install @qa-observability-platform/playwright
+- Puppeteer/Jest: npm install @qa-observability-platform/puppeteer
+- Pytest: pip install qa-observability-platform-pytest
+- Selenium/TestNG: JitPack (coming soon)
+
+== KEY FEATURES ==
+- Real-time test execution streaming via WebSocket
+- Flaky test detection: scoring 0-100, pattern recognition (PFPFPF), root cause analysis
+- Auto-quarantine (score > 80) / auto-release (score < 20)
+- AI-powered failure analysis: Claude, GPT-4, Groq (Llama)
+- Screenshot capture on failure with URL bar overlay
+- Multi-tenancy: Organizations > Projects > Applications > Test Runs
+- CI/CD metadata capture (branch, commit, build URL)
+
+== ENV VARIABLES (.env.docker) ==
+POSTGRES_PASSWORD, JWT_SECRET, QOP_API_URL (e.g. http://your-server:4000), QOP_WS_URL (e.g. ws://your-server:4000), GROQ_API_KEY, ANTHROPIC_API_KEY, OPENAI_API_KEY, PREFERRED_AI_PROVIDER (groq|openrouter|claude|openai)
+
+== GITHUB ==
+Org: https://github.com/qa-observability-platform
+Repos: org.qop.nodeapi, org.qop.pythonapi, org.qop.web, org.qop.deploy
+
+Keep answers concise, helpful, and technical. Use code blocks where appropriate.`;
+
+let chatHistory = [];
+
+function toggleChat() {
+  const panel = document.getElementById('chat-panel');
+  panel.classList.toggle('open');
+  if (panel.classList.contains('open')) {
+    const key = localStorage.getItem('groq_key');
+    if (key) {
+      showChatScreen();
+    } else {
+      showKeySetup();
+    }
+  }
+}
+
+function showKeySetup() {
+  document.getElementById('key-setup').style.display = 'block';
+  document.getElementById('chat-screen').style.display = 'none';
+  setTimeout(() => document.getElementById('key-input').focus(), 100);
+}
+
+function showChatScreen() {
+  document.getElementById('key-setup').style.display = 'none';
+  document.getElementById('chat-screen').style.display = 'flex';
+  if (chatHistory.length === 0) {
+    appendMessage('assistant', 'Hi! I\'m the QOP Assistant. Ask me anything about setting up QOP, the reporter SDKs, flaky test detection, or any other QOP feature.');
+  }
+  setTimeout(() => document.getElementById('chat-input').focus(), 100);
+}
+
+function saveKey() {
+  const key = document.getElementById('key-input').value.trim();
+  if (!key.startsWith('gsk_')) {
+    document.getElementById('key-input').style.borderColor = '#f87171';
+    return;
+  }
+  localStorage.setItem('groq_key', key);
+  document.getElementById('key-input').value = '';
+  showChatScreen();
+}
+
+function appendMessage(role, text) {
+  const msgs = document.getElementById('chat-messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.textContent = text;
+  msgs.appendChild(div);
+  msgs.scrollTop = msgs.scrollHeight;
+  return div;
+}
+
+async function sendMessage() {
+  const input = document.getElementById('chat-input');
+  const text = input.value.trim();
+  if (!text) return;
+
+  const key = localStorage.getItem('groq_key');
+  if (!key) { showKeySetup(); return; }
+
+  input.value = '';
+  appendMessage('user', text);
+  chatHistory.push({ role: 'user', content: text });
+
+  const thinking = appendMessage('thinking', 'Thinking...');
+
+  try {
+    const res = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + key },
+      body: JSON.stringify({
+        model: 'llama-3.3-70b-versatile',
+        messages: [{ role: 'system', content: SYSTEM_PROMPT }, ...chatHistory],
+        max_tokens: 1024,
+        temperature: 0.5
+      })
+    });
+
+    thinking.remove();
+
+    if (res.status === 401) {
+      appendMessage('error', 'Invalid API key. Click ⚙ Key to update it.');
+      localStorage.removeItem('groq_key');
+      return;
+    }
+    if (res.status === 429) {
+      appendMessage('error', 'Rate limit reached on this key. Click ⚙ Key to enter your own Groq API key (free at console.groq.com).');
+      return;
+    }
+    if (!res.ok) {
+      appendMessage('error', 'Error: ' + res.status + '. Please try again.');
+      return;
+    }
+
+    const data = await res.json();
+    const reply = data.choices[0].message.content;
+    chatHistory.push({ role: 'assistant', content: reply });
+    appendMessage('assistant', reply);
+
+  } catch (e) {
+    thinking.remove();
+    appendMessage('error', 'Network error. Please check your connection.');
+  }
+}
+</script>
+
 </body>
 </html>
