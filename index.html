@@ -667,7 +667,8 @@ async function sendMessage() {
       return;
     }
     if (res.status === 429) {
-      appendMessage('error', 'Rate limit reached on this key. Click ⚙ Key to enter your own Groq API key (free at console.groq.com).');
+      appendMessage('error', 'Daily limit reached. Enter your own free Groq API key to continue (get one at console.groq.com).');
+      setTimeout(() => showKeySetup(), 1500);
       return;
     }
     if (!res.ok) {
