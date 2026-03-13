@@ -606,7 +606,7 @@ function showKeySetup() {
 function showChatScreen() {
   document.getElementById('key-setup').style.display = 'none';
   document.getElementById('chat-screen').style.display = 'flex';
-  if (chatHistory.length === 0) {
+  if (document.getElementById('chat-messages').children.length === 0) {
     appendMessage('assistant', 'Hi! I\'m the QOP Assistant. Ask me anything about setting up QOP, the reporter SDKs, flaky test detection, or any other QOP feature.');
   }
   setTimeout(() => document.getElementById('chat-input').focus(), 100);
